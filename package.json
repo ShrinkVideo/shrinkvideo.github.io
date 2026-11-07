@@ -1,0 +1,22 @@
+{
+  "name": "shrinkvideo",
+  "type": "module",
+  "version": "1.0.0",
+  "description": "ShrinkVideo — Free Online Video Compressor (No Watermark, Zero Upload)",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.2.1",
+    "@ffmpeg/core": "^0.12.6",
+    "@ffmpeg/ffmpeg": "^0.12.10",
+    "@ffmpeg/util": "^0.12.1",
+    "@tailwindcss/vite": "^4.0.0",
+    "astro": "^5.1.1",
+    "tailwindcss": "^4.0.0"
+  }
+}

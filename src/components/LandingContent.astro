@@ -1,0 +1,199 @@
+---
+import { type Locale, useTranslations, getLocalePath } from '../i18n/ui';
+import VideoCompressorBox from './VideoCompressorBox.astro';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const basePath = getLocalePath(lang);
+---
+
+<!-- FIRST VIEWPORT (100dvh Above the Fold): Dedicated strictly to H1 + Interactive Compressor Box Div -->
+<section class="min-h-[calc(100dvh-4.25rem)] flex flex-col justify-center px-3 sm:px-6 py-6 md:py-10 max-w-6xl mx-auto">
+  <div class="text-center mb-5 sm:mb-7">
+    <h1
+      class="font-black tracking-tight text-[var(--text-primary)] leading-[1.1] mb-2.5"
+      style="font-size: clamp(2rem, 4vw, 3.25rem);"
+    >
+      {t('hero.h1')}
+    </h1>
+    <p class="text-base sm:text-lg md:text-xl font-medium text-[var(--text-secondary)] max-w-3xl mx-auto">
+      {t('hero.subtitle')}
+    </p>
+  </div>
+
+  <!-- Interactive Client-Side Video Compressor Box -->
+  <VideoCompressorBox lang={lang} />
+</section>
+
+<!-- BELOW THE FOLD: Breadcrumbs, HowTo Steps, Target File Size Table, Semantic Guides, Features & FAQ -->
+<section id="video-tools" class="border-t border-[var(--border-color)]/30 bg-[var(--bg-surface-card)] py-14 sm:py-20 px-4 sm:px-6">
+  <div class="max-w-5xl mx-auto space-y-16">
+    
+    <!-- 1:1 Breadcrumb Navigation matching BreadcrumbList JSON-LD Schema -->
+    <nav aria-label="Breadcrumb" class="flex flex-wrap items-center gap-2 text-sm font-semibold text-[var(--text-secondary)]">
+      <a href={basePath} class="hover:text-[var(--text-primary)] transition-colors">
+        {t('breadcrumb.home')}
+      </a>
+      <span aria-hidden="true">&gt;</span>
+      <a href={`${basePath}#video-tools`} class="hover:text-[var(--text-primary)] transition-colors">
+        {t('breadcrumb.tools')}
+      </a>
+      <span aria-hidden="true">&gt;</span>
+      <span class="text-[var(--text-primary)] font-bold" aria-current="page">
+        {t('breadcrumb.compressor')}
+      </span>
+    </nav>
+
+    <!-- HowTo 3-Step Semantic Guide (Maps 1:1 with HowTo JSON-LD) -->
+    <article class="space-y-8">
+      <div class="text-center max-w-3xl mx-auto space-y-3">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)]">
+          {t('howto.heading')}
+        </h2>
+        <p class="text-base sm:text-lg text-[var(--text-secondary)] leading-relaxed">
+          {t('seo.guideSub')}
+        </p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="p-6 rounded-3xl bg-[var(--bg-primary)] border border-[var(--border-color)]/40 space-y-2.5">
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#1B1A55] text-white font-black text-lg">1</span>
+          <h3 class="text-lg font-extrabold text-[var(--text-primary)]">{t('howto.step1Title')}</h3>
+          <p class="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">{t('howto.step1Desc')}</p>
+        </div>
+
+        <div class="p-6 rounded-3xl bg-[var(--bg-primary)] border border-[var(--border-color)]/40 space-y-2.5">
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#1B1A55] text-white font-black text-lg">2</span>
+          <h3 class="text-lg font-extrabold text-[var(--text-primary)]">{t('howto.step2Title')}</h3>
+          <p class="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">{t('howto.step2Desc')}</p>
+        </div>
+
+        <div class="p-6 rounded-3xl bg-[var(--bg-primary)] border border-[var(--border-color)]/40 space-y-2.5">
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-[#1B1A55] text-white font-black text-lg">3</span>
+          <h3 class="text-lg font-extrabold text-[var(--text-primary)]">{t('howto.step3Title')}</h3>
+          <p class="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed">{t('howto.step3Desc')}</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- Target File Size & Bitrate Reference Table -->
+    <article class="space-y-6">
+      <div class="text-center max-w-3xl mx-auto space-y-2">
+        <h2 class="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)]">
+          {t('seo.tableHeading')}
+        </h2>
+        <p class="text-sm sm:text-base text-[var(--text-secondary)]">
+          {t('seo.guideHeading')}
+        </p>
+      </div>
+
+      <div class="overflow-x-auto rounded-3xl border border-[var(--border-color)]/50 shadow-sm">
+        <table class="w-full text-left border-collapse bg-[var(--bg-primary)]">
+          <thead>
+            <tr class="bg-[#1B1A55] text-white text-xs sm:text-sm uppercase tracking-wider">
+              <th class="py-4 px-5 font-extrabold">{t('seo.thPlatform')}</th>
+              <th class="py-4 px-5 font-extrabold">{t('seo.thTarget')}</th>
+              <th class="py-4 px-5 font-extrabold">{t('seo.thResolution')}</th>
+              <th class="py-4 px-5 font-extrabold">{t('seo.thSavings')}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[var(--border-color)]/30 text-sm sm:text-base font-medium text-[var(--text-primary)]">
+            <tr class="hover:bg-[var(--highlight-pill-badge)]/60 transition-colors">
+              <td class="py-4 px-5 font-bold">{t('seo.rowDiscord')}</td>
+              <td class="py-4 px-5"><span class="px-2.5 py-1 rounded-lg bg-[#1B1A55] text-white text-xs font-bold">8 MB / 10 MB</span></td>
+              <td class="py-4 px-5 text-[var(--text-secondary)]">720p HD (H.264 / AAC)</td>
+              <td class="py-4 px-5 font-extrabold text-emerald-600 dark:text-emerald-400">Up to 85% Smaller</td>
+            </tr>
+            <tr class="hover:bg-[var(--highlight-pill-badge)]/60 transition-colors">
+              <td class="py-4 px-5 font-bold">{t('seo.rowEmail')}</td>
+              <td class="py-4 px-5"><span class="px-2.5 py-1 rounded-lg bg-[#1B1A55] text-white text-xs font-bold">25 MB</span></td>
+              <td class="py-4 px-5 text-[var(--text-secondary)]">1080p / 720p (Smart CRF 24)</td>
+              <td class="py-4 px-5 font-extrabold text-emerald-600 dark:text-emerald-400">60% – 80% Smaller</td>
+            </tr>
+            <tr class="hover:bg-[var(--highlight-pill-badge)]/60 transition-colors">
+              <td class="py-4 px-5 font-bold">{t('seo.rowPortal50')}</td>
+              <td class="py-4 px-5"><span class="px-2.5 py-1 rounded-lg bg-[#535C91] text-white text-xs font-bold">50 MB</span></td>
+              <td class="py-4 px-5 text-[var(--text-secondary)]">1080p Full HD (CRF 24)</td>
+              <td class="py-4 px-5 font-extrabold text-emerald-600 dark:text-emerald-400">50% – 75% Smaller</td>
+            </tr>
+            <tr class="hover:bg-[var(--highlight-pill-badge)]/60 transition-colors">
+              <td class="py-4 px-5 font-bold">{t('seo.rowPortal100')}</td>
+              <td class="py-4 px-5"><span class="px-2.5 py-1 rounded-lg bg-[#535C91] text-white text-xs font-bold">100 MB</span></td>
+              <td class="py-4 px-5 text-[var(--text-secondary)]">Keep Original / 1080p MP4</td>
+              <td class="py-4 px-5 font-extrabold text-emerald-600 dark:text-emerald-400">Up to 70% Smaller</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+    <!-- 3 Key Architecture Highlights -->
+    <article>
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] text-center mb-10">
+        {t('features.heading')}
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="p-6 rounded-3xl bg-[var(--bg-primary)] border border-[var(--border-color)]/40 space-y-3">
+          <div class="w-12 h-12 rounded-2xl bg-[#1B1A55] text-white flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-extrabold text-[var(--text-primary)]">{t('features.f1Title')}</h3>
+          <p class="text-base text-[var(--text-secondary)] leading-relaxed">{t('features.f1Desc')}</p>
+        </div>
+
+        <div class="p-6 rounded-3xl bg-[var(--bg-primary)] border border-[var(--border-color)]/40 space-y-3">
+          <div class="w-12 h-12 rounded-2xl bg-[#1B1A55] text-white flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 15.75V18m-7.5-6.75h.008v.008H8.25v-.008zm0 2.25h.008v.008H8.25V13.5zm0 2.25h.008v.008H8.25v-.008zm0 2.25h.008v.008H8.25V18zm2.498-6.75h.007v.008h-.007v-.008zm0 2.25h.007v.008h-.007V13.5zm0 2.25h.007v.008h-.007v-.008zm0 2.25h.007v.008h-.007V18zm2.504-6.75h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V13.5zm0 2.25h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V18zm2.498-6.75h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V13.5zM8.25 6h7.5v2.25h-7.5V6zM12 2.25c-1.892 0-3.758.11-5.593.322C5.307 2.7 4.5 3.65 4.5 4.757V19.5a2.25 2.25 0 002.25 2.25h10.5a2.25 2.25 0 002.25-2.25V4.757c0-1.108-.806-2.057-1.907-2.185A48.507 48.507 0 0012 2.25z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-extrabold text-[var(--text-primary)]">{t('features.f2Title')}</h3>
+          <p class="text-base text-[var(--text-secondary)] leading-relaxed">{t('features.f2Desc')}</p>
+        </div>
+
+        <div class="p-6 rounded-3xl bg-[var(--bg-primary)] border border-[var(--border-color)]/40 space-y-3">
+          <div class="w-12 h-12 rounded-2xl bg-[#1B1A55] text-white flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-extrabold text-[var(--text-primary)]">{t('features.f3Title')}</h3>
+          <p class="text-base text-[var(--text-secondary)] leading-relaxed">{t('features.f3Desc')}</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- SEO FAQ Section (Maps 1:1 with FAQPage JSON-LD) -->
+    <article class="space-y-6">
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-[var(--text-primary)] text-center">
+        {t('faq.heading')}
+      </h2>
+      <div class="space-y-4">
+        <div class="p-6 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-color)]/40">
+          <h3 class="text-lg font-extrabold text-[var(--text-primary)] mb-2">{t('faq.q1')}</h3>
+          <p class="text-base text-[var(--text-secondary)] leading-relaxed">{t('faq.a1')}</p>
+        </div>
+        <div class="p-6 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-color)]/40">
+          <h3 class="text-lg font-extrabold text-[var(--text-primary)] mb-2">{t('faq.q2')}</h3>
+          <p class="text-base text-[var(--text-secondary)] leading-relaxed">{t('faq.a2')}</p>
+        </div>
+        <div class="p-6 rounded-2xl bg-[var(--bg-primary)] border border-[var(--border-color)]/40">
+          <h3 class="text-lg font-extrabold text-[var(--text-primary)] mb-2">{t('faq.q3')}</h3>
+          <p class="text-base text-[var(--text-secondary)] leading-relaxed">{t('faq.a3')}</p>
+        </div>
+      </div>
+    </article>
+
+    <!-- Footer -->
+    <footer class="pt-8 border-t border-[var(--border-color)]/30 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm font-semibold text-[var(--text-secondary)]">
+      <p>{t('footer.tagline')}</p>
+      <p>© {new Date().getFullYear()} ShrinkVideo • {t('footer.rights')}</p>
+    </footer>
+  </div>
+</section>

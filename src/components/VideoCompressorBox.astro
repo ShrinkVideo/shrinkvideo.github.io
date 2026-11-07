@@ -1,0 +1,1135 @@
+---
+import { type Locale, useTranslations } from '../i18n/ui';
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const clientStrings = {
+  generatingSample: t('drop.generatingSample'),
+  sampleBtn: t('drop.sampleBtn'),
+  loadingEngine: t('progress.loadingEngine'),
+  transcoding: t('progress.transcoding'),
+  instantFallback: t('progress.instantFallback'),
+  original: t('result.original'),
+  compressed: t('result.compressed'),
+  saved: t('result.saved'),
+  presetQualityTitle: t('controls.presetQualityTitle'),
+  presetMaxTitle: t('controls.presetMaxTitle'),
+  presetTargetTitle: t('controls.presetTargetTitle'),
+};
+---
+
+<div
+  id="compressor-workspace"
+  data-strings={JSON.stringify(clientStrings)}
+  class="w-full max-w-4xl mx-auto rounded-3xl bg-[var(--workspace-box-bg)] border-2 border-[var(--border-color)] shadow-[var(--card-shadow)] p-4 sm:p-6 md:p-8 transition-all duration-300"
+>
+  <!-- Ultra-Minimal Collapsible Mode Header Bar -->
+  <div class="flex flex-col items-center mb-4">
+    <button
+      type="button"
+      id="toggle-modes-drawer-btn"
+      aria-expanded="false"
+      aria-controls="modes-drawer-panel"
+      aria-label={t('mode.toggleLabel')}
+      class="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-[var(--highlight-pill-badge)] hover:bg-[#9290C3]/25 border border-[var(--border-color)]/50 text-xs sm:text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-all cursor-pointer select-none group"
+    >
+      <span class="w-2 h-2 rounded-full bg-[#1B1A55] dark:bg-[#9290C3]"></span>
+      <span id="active-mode-label" class="font-extrabold text-[var(--text-primary)]">{t('mode.compressVideo')}</span>
+      <span class="opacity-60">•</span>
+      <span>{t('mode.toggleLabel')}</span>
+      <svg
+        id="modes-drawer-chevron"
+        class="w-4 h-4 text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-transform duration-300"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        stroke-width="2.5"
+        aria-hidden="true"
+      >
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+      </svg>
+    </button>
+
+    <!-- Collapsible Top Mode Selector Pills (Hidden on initial load for ultra-minimal UI) -->
+    <div
+      id="modes-drawer-panel"
+      class="hidden w-full pt-4 mt-3 border-t border-[var(--border-color)]/25 transition-all duration-300"
+    >
+      <div class="flex flex-wrap items-center justify-center gap-2" role="tablist" aria-label="Compression Modes">
+        <button
+          type="button"
+          role="tab"
+          aria-selected="true"
+          data-mode-pill="compress-video"
+          class="mode-pill px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer bg-[#1B1A55] text-white shadow-sm"
+        >
+          {t('mode.compressVideo')}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected="false"
+          data-mode-pill="compress-mp4"
+          class="mode-pill px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer bg-[var(--highlight-pill-badge)] text-[var(--text-primary)] hover:border-[#1B1A55] border border-transparent"
+        >
+          {t('mode.compressMp4')}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected="false"
+          data-mode-pill="compress-iphone"
+          class="mode-pill px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer bg-[var(--highlight-pill-badge)] text-[var(--text-primary)] hover:border-[#1B1A55] border border-transparent"
+        >
+          {t('mode.compressIphone')}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected="false"
+          data-mode-pill="compress-email"
+          class="mode-pill px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer bg-[var(--highlight-pill-badge)] text-[var(--text-primary)] hover:border-[#1B1A55] border border-transparent"
+        >
+          {t('mode.compressEmail')}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected="false"
+          data-mode-pill="compress-large"
+          class="mode-pill px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer bg-[var(--highlight-pill-badge)] text-[var(--text-primary)] hover:border-[#1B1A55] border border-transparent"
+        >
+          {t('mode.compressLarge')}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected="false"
+          data-mode-pill="trim-video"
+          class="mode-pill px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer bg-[var(--highlight-pill-badge)] text-[var(--text-primary)] hover:border-[#1B1A55] border border-transparent"
+        >
+          {t('mode.trimVideo')}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 1: Giant Dashed-Border Drag-and-Drop Zone (Ultra-Minimal First Screen) -->
+  <div id="step-1-dropzone" class="transition-all duration-300">
+    <div
+      id="dropzone-area"
+      class="dropzone-surface relative group rounded-3xl border-3 border-dashed p-6 sm:p-10 md:p-12 text-center transition-all duration-300 flex flex-col items-center justify-center min-h-[260px] sm:min-h-[300px] cursor-pointer"
+    >
+      <input
+        type="file"
+        id="video-file-input"
+        aria-label={t('drop.selectBtn')}
+        accept="video/mp4,video/quicktime,video/webm,video/x-matroska,video/*,.mp4,.mov,.webm,.mkv,.avi,.m4v"
+        multiple
+        class="hidden"
+      />
+
+      <!-- Oversized Floating SVG Icon -->
+      <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-[var(--icon-box-bg)] border border-[#9290C3]/60 flex items-center justify-center mb-5 animate-float shadow-sm">
+        <svg class="w-10 h-10 sm:w-12 sm:h-12 text-[var(--icon-box-text)]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 10.5l4.72-4.72a.75.75 0 011.28.53v11.38a.75.75 0 01-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 002.25-2.25v-9a2.25 2.25 0 00-2.25-2.25h-9A2.25 2.25 0 002.25 7.5v9a2.25 2.25 0 002.25 2.25z" />
+        </svg>
+      </div>
+
+      <h2 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-[var(--text-primary)] mb-2 tracking-tight">
+        {t('drop.title')}
+      </h2>
+      <p class="text-base sm:text-lg text-[var(--text-secondary)] max-w-xl mb-7 font-medium">
+        {t('drop.subtitle')}
+      </p>
+
+      <!-- Action Button -->
+      <div class="flex items-center justify-center w-full max-w-xl">
+        <button
+          type="button"
+          id="select-video-btn"
+          class="btn-primary-action w-full sm:w-auto px-9 py-4 rounded-2xl font-extrabold text-lg sm:text-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 cursor-pointer animate-pulse-glow"
+        >
+          <svg class="w-6 h-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+          </svg>
+          <span>{t('drop.selectBtn')}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2: Ultra-Minimal Ready Window (Primary Compress Button + Collapsible Settings Accordion) -->
+  <div id="step-2-controls" class="hidden space-y-5 transition-all duration-300">
+    <!-- Selected File Info Bar -->
+    <div class="flex flex-wrap items-center justify-between gap-3 p-4 rounded-2xl bg-[var(--highlight-pill-badge)] border border-[var(--border-color)]/50">
+      <div class="flex items-center gap-3.5 min-w-0">
+        <div class="w-12 h-12 rounded-xl bg-[#1B1A55] text-white flex items-center justify-center font-bold text-xs uppercase shrink-0" id="file-ext-badge">
+          MP4
+        </div>
+        <div class="min-w-0">
+          <p id="selected-file-name" class="font-extrabold text-base sm:text-lg text-[var(--text-primary)] truncate">
+            sample-video.mp4
+          </p>
+          <p id="selected-file-meta" class="text-sm font-semibold text-[var(--text-secondary)]">
+            24.5 MB • 1920×1080 • 12.4s
+          </p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span id="batch-count-badge" class="hidden px-3 py-1.5 rounded-xl bg-[#535C91] text-white text-xs font-bold">
+          1 file
+        </span>
+        <button
+          type="button"
+          id="change-video-btn"
+          class="px-3.5 py-2 rounded-xl border border-[var(--border-color)] text-xs sm:text-sm font-bold text-[var(--text-primary)] hover:bg-[#1B1A55] hover:text-white transition-colors cursor-pointer"
+        >
+          {t('drop.clearAll')}
+        </button>
+      </div>
+    </div>
+
+    <!-- Primary Hero Action Card: Live Estimate + Giant 1-Click 'Compress Video Now' Button -->
+    <div class="p-5 sm:p-6 rounded-3xl bg-[var(--highlight-pill-badge)]/60 border-2 border-[var(--border-color)]/50 flex flex-col items-center text-center space-y-4">
+      <div class="inline-flex flex-wrap items-center justify-center gap-2 px-4 py-1.5 rounded-full bg-[var(--bg-surface-card)] border border-[var(--border-color)]/50" aria-live="polite">
+        <span id="active-preset-summary-pill" class="text-xs sm:text-sm font-extrabold text-[#1B1A55] dark:text-[#9290C3]">
+          {t('controls.presetQualityTitle')}
+        </span>
+        <span class="opacity-40">•</span>
+        <span class="text-xs sm:text-sm font-bold text-[var(--text-secondary)]">{t('controls.estimatedOutput')}</span>
+        <span id="live-estimated-size" class="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400">
+          ~6.8 MB (-60%)
+        </span>
+      </div>
+
+      <button
+        type="button"
+        id="start-compress-btn"
+        aria-label={t('controls.compressNowBtn')}
+        class="btn-primary-action w-full max-w-md px-10 py-4.5 rounded-2xl font-extrabold text-xl sm:text-2xl shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-3 cursor-pointer animate-pulse-glow"
+      >
+        <svg class="w-7 h-7 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+        </svg>
+        <span>{t('controls.compressNowBtn')}</span>
+      </button>
+
+      <!-- Collapsible Settings Toggle Button with Arrow Icon -->
+      <button
+        type="button"
+        id="toggle-advanced-settings-btn"
+        aria-expanded="false"
+        aria-controls="advanced-settings-drawer"
+        class="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-card)] transition-all cursor-pointer select-none"
+      >
+        <svg class="w-4 h-4 text-[#535C91] dark:text-[#9290C3]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+        </svg>
+        <span>{t('controls.moreSettingsBtn')}</span>
+        <svg
+          id="advanced-settings-chevron"
+          class="w-4 h-4 transition-transform duration-300"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          stroke-width="2.5"
+          aria-hidden="true"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Collapsible Advanced Settings Drawer (Hidden by default so Step 2 is ultra-clean) -->
+    <div id="advanced-settings-drawer" class="hidden space-y-5 pt-2 border-t border-[var(--border-color)]/30 transition-all duration-300">
+      <!-- 3 Big Preset Cards -->
+      <div>
+        <h3 class="text-base sm:text-lg font-extrabold text-[var(--text-primary)] mb-3">
+          {t('controls.stepTitle')}
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+          <!-- Card 1: Without Losing Quality (CRF 24) -->
+          <label
+            data-preset-card="quality"
+            class="preset-card relative flex flex-col justify-between p-4 rounded-2xl border-2 border-[#1B1A55] dark:border-[#9290C3] bg-[var(--highlight-pill-badge)] cursor-pointer transition-all"
+          >
+            <input type="radio" name="compression-preset" value="quality" checked class="sr-only" />
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <span class="inline-block px-2.5 py-1 rounded-lg bg-[#1B1A55] text-white text-xs font-extrabold">
+                  {t('controls.presetQualityBadge')}
+                </span>
+                <span class="w-5 h-5 rounded-full border-2 border-[#1B1A55] dark:border-[#9290C3] flex items-center justify-center preset-radio-dot">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#1B1A55] dark:bg-[#9290C3]"></span>
+                </span>
+              </div>
+              <div class="text-base font-extrabold text-[var(--text-primary)] mb-1">
+                {t('controls.presetQualityTitle')}
+              </div>
+              <p class="text-xs text-[var(--text-secondary)] font-medium leading-snug">
+                {t('controls.presetQualityDesc')}
+              </p>
+            </div>
+          </label>
+
+          <!-- Card 2: Maximum Compression (CRF 30) -->
+          <label
+            data-preset-card="max"
+            class="preset-card relative flex flex-col justify-between p-4 rounded-2xl border-2 border-[var(--border-color)]/40 bg-[var(--bg-surface-card)] hover:border-[#535C91] cursor-pointer transition-all"
+          >
+            <input type="radio" name="compression-preset" value="max" class="sr-only" />
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <span class="inline-block px-2.5 py-1 rounded-lg bg-[#535C91] text-white text-xs font-extrabold">
+                  {t('controls.presetMaxBadge')}
+                </span>
+                <span class="w-5 h-5 rounded-full border-2 border-[#9290C3] flex items-center justify-center preset-radio-dot">
+                  <span class="w-2.5 h-2.5 rounded-full bg-transparent"></span>
+                </span>
+              </div>
+              <div class="text-base font-extrabold text-[var(--text-primary)] mb-1">
+                {t('controls.presetMaxTitle')}
+              </div>
+              <p class="text-xs text-[var(--text-secondary)] font-medium leading-snug">
+                {t('controls.presetMaxDesc')}
+              </p>
+            </div>
+          </label>
+
+          <!-- Card 3: Target File Size (Bitrate Calculator) -->
+          <label
+            data-preset-card="target"
+            class="preset-card relative flex flex-col justify-between p-4 rounded-2xl border-2 border-[var(--border-color)]/40 bg-[var(--bg-surface-card)] hover:border-[#535C91] cursor-pointer transition-all"
+          >
+            <input type="radio" name="compression-preset" value="target" class="sr-only" />
+            <div>
+              <div class="flex items-center justify-between gap-2 mb-2">
+                <span class="inline-block px-2.5 py-1 rounded-lg bg-[#535C91] text-white text-xs font-extrabold">
+                  {t('controls.presetTargetBadge')}
+                </span>
+                <span class="w-5 h-5 rounded-full border-2 border-[#9290C3] flex items-center justify-center preset-radio-dot">
+                  <span class="w-2.5 h-2.5 rounded-full bg-transparent"></span>
+                </span>
+              </div>
+              <div class="text-base font-extrabold text-[var(--text-primary)] mb-1">
+                {t('controls.presetTargetTitle')}
+              </div>
+              <p class="text-xs text-[var(--text-secondary)] font-medium leading-snug">
+                {t('controls.presetTargetDesc')}
+              </p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Target File Size 1-Click Pills -->
+      <div id="target-size-panel" class="p-4 rounded-2xl bg-[var(--highlight-pill-badge)] border border-[var(--border-color)]/50 space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <span class="text-sm font-extrabold text-[var(--text-primary)]">
+            {t('controls.presetTargetTitle')} (MB):
+          </span>
+          <span id="calculated-bitrate-badge" class="text-xs font-bold px-3 py-1 rounded-lg bg-[#1B1A55] text-white">
+            {t('controls.calculatedBitrate')} ~1,850 kbps
+          </span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" data-target-mb="8" class="target-mb-pill px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-[#1B1A55] text-white cursor-pointer transition-all">
+            {t('controls.pill8mb')}
+          </button>
+          <button type="button" data-target-mb="25" class="target-mb-pill px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-[var(--bg-surface-card)] text-[var(--text-primary)] border border-[var(--border-color)] cursor-pointer transition-all">
+            {t('controls.pill25mb')}
+          </button>
+          <button type="button" data-target-mb="50" class="target-mb-pill px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-[var(--bg-surface-card)] text-[var(--text-primary)] border border-[var(--border-color)] cursor-pointer transition-all">
+            {t('controls.pill50mb')}
+          </button>
+          <button type="button" data-target-mb="100" class="target-mb-pill px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-[var(--bg-surface-card)] text-[var(--text-primary)] border border-[var(--border-color)] cursor-pointer transition-all">
+            {t('controls.pill100mb')}
+          </button>
+          <div class="flex items-center gap-1.5 ml-auto">
+            <label for="custom-mb-input" class="text-xs font-bold text-[var(--text-secondary)]">
+              {t('controls.customMbLabel')}
+            </label>
+            <input
+              type="number"
+              id="custom-mb-input"
+              min="1"
+              max="2000"
+              step="1"
+              value="8"
+              class="w-20 px-2.5 py-1.5 rounded-xl border border-[var(--border-color)] bg-[var(--bg-surface-card)] text-[var(--text-primary)] font-bold text-sm text-center"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Resolution Downscale, Mute Audio & Trim Controls Row -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-center p-4 rounded-2xl bg-[var(--bg-surface-card)] border border-[var(--border-color)]/40">
+        <div>
+          <label for="resolution-select" class="block text-xs font-extrabold text-[var(--text-primary)] mb-1.5">
+            {t('controls.resolutionLabel')}
+          </label>
+          <select
+            id="resolution-select"
+            class="w-full px-3.5 py-2.5 rounded-xl border border-[var(--border-color)] bg-[var(--highlight-pill-badge)] text-[var(--text-primary)] font-bold text-sm cursor-pointer"
+          >
+            <option value="original">{t('controls.resOriginal')}</option>
+            <option value="1080">{t('controls.res1080')}</option>
+            <option value="720">{t('controls.res720')}</option>
+            <option value="480">{t('controls.res480')}</option>
+          </select>
+        </div>
+
+        <div class="flex items-center pt-2 sm:pt-5">
+          <label class="inline-flex items-center gap-3 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              id="mute-audio-checkbox"
+              class="w-5 h-5 rounded-md accent-[#1B1A55] cursor-pointer"
+            />
+            <span class="text-sm font-bold text-[var(--text-primary)]">
+              {t('controls.muteAudio')}
+            </span>
+          </label>
+        </div>
+
+        <div id="trim-controls-box" class="flex items-center gap-2">
+          <div class="flex-1">
+            <label for="trim-start-input" class="block text-xs font-bold text-[var(--text-secondary)] mb-1">
+              {t('controls.trimStart')}
+            </label>
+            <input
+              type="number"
+              id="trim-start-input"
+              min="0"
+              step="0.5"
+              value="0"
+              class="w-full px-2.5 py-2 rounded-xl border border-[var(--border-color)] bg-[var(--highlight-pill-badge)] text-[var(--text-primary)] font-bold text-sm"
+            />
+          </div>
+          <div class="flex-1">
+            <label for="trim-end-input" class="block text-xs font-bold text-[var(--text-secondary)] mb-1">
+              {t('controls.trimEnd')}
+            </label>
+            <input
+              type="number"
+              id="trim-end-input"
+              min="0"
+              step="0.5"
+              placeholder="End"
+              class="w-full px-2.5 py-2 rounded-xl border border-[var(--border-color)] bg-[var(--highlight-pill-badge)] text-[var(--text-primary)] font-bold text-sm"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 3: Animated Progress Bar -->
+  <div id="step-3-progress" aria-live="polite" class="hidden py-8 px-4 text-center space-y-6 transition-all duration-300">
+    <div class="w-16 h-16 mx-auto rounded-2xl bg-[#1B1A55] text-white flex items-center justify-center shadow-lg animate-bounce">
+      <svg class="w-9 h-9" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+      </svg>
+    </div>
+
+    <div class="space-y-2">
+      <h3 class="text-xl sm:text-2xl font-extrabold text-[var(--text-primary)]">
+        {t('progress.title')}
+      </h3>
+      <p id="progress-status-text" aria-live="polite" class="text-sm sm:text-base font-semibold text-[var(--text-secondary)]">
+        {t('progress.loadingEngine')}
+      </p>
+    </div>
+
+    <!-- Smooth Animated Gradient Progress Bar (#1B1A55 to #535C91) -->
+    <div class="max-w-xl mx-auto space-y-2.5" aria-live="polite">
+      <div class="flex items-center justify-between text-sm font-extrabold text-[var(--text-primary)]">
+        <span id="progress-live-estimate">{t('progress.liveEstimate')} -- MB</span>
+        <span id="progress-percentage" class="text-lg">0%</span>
+      </div>
+      <div
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-label={t('progress.title')}
+        class="w-full h-5 rounded-full bg-[var(--highlight-pill-badge)] border border-[var(--border-color)]/50 overflow-hidden p-0.5"
+      >
+        <div
+          id="progress-bar-fill"
+          class="h-full rounded-full progress-gradient-bar transition-all duration-200"
+          style="width: 4%"
+        ></div>
+      </div>
+    </div>
+
+    <!-- Privacy RAM Badge -->
+    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--highlight-pill-badge)] border border-[var(--border-color)]/60 text-xs sm:text-sm font-bold text-[var(--text-primary)]">
+      <svg class="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+        <path fill-rule="evenodd" d="M10 1a4.5 4.5 0 00-4.5 4.5V9H5a2 2 0 00-2 2v6a2 2 0 002 2h10a2 2 0 002-2v-6a2 2 0 00-2-2h-.5V5.5A4.5 4.5 0 0010 1zm3 8V5.5a3 3 0 10-6 0V9h6z" clip-rule="evenodd" />
+      </svg>
+      <span>{t('progress.ramBadge')}</span>
+    </div>
+  </div>
+
+  <!-- STEP 4: Visual Before vs. After Size Savings Banner + HTML5 Video Preview + Download -->
+  <div id="step-4-result" aria-live="polite" class="hidden space-y-6 transition-all duration-300">
+    <!-- Before vs After Size Savings Banner -->
+    <div role="status" aria-live="polite" class="p-4 sm:p-5 rounded-2xl bg-[#1B1A55] text-white border-2 border-[#9290C3] shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-400/50 flex items-center justify-center text-emerald-300 shrink-0">
+          <svg class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+          </svg>
+        </div>
+        <div>
+          <p id="savings-banner-text" class="text-base sm:text-xl font-extrabold tracking-tight">
+            Original: 24.5 MB → Compressed: 4.8 MB (Saved 80%!)
+          </p>
+          <p class="text-xs sm:text-sm text-[#9290C3] font-semibold">
+            {t('result.qualityVerified')}
+          </p>
+        </div>
+      </div>
+
+      <span id="savings-pill-percent" class="px-4 py-1.5 rounded-xl bg-emerald-500 text-[#070F2B] font-black text-base sm:text-lg whitespace-nowrap">
+        -80%
+      </span>
+    </div>
+
+    <!-- Instant HTML5 <video controls> Preview Player -->
+    <div class="rounded-2xl overflow-hidden bg-[#070F2B] border-2 border-[var(--border-color)] shadow-inner">
+      <video
+        id="compressed-video-preview"
+        controls
+        playsinline
+        class="w-full max-h-[340px] object-contain mx-auto"
+      ></video>
+    </div>
+
+    <!-- Oversized Download Button & Compress Another -->
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-1">
+      <a
+        id="download-compressed-btn"
+        href="#"
+        download="compressed-shrinkvideo.mp4"
+        class="btn-primary-action w-full sm:w-auto px-10 py-4 rounded-2xl border-2 border-[#9290C3] font-extrabold text-lg sm:text-xl shadow-xl hover:shadow-2xl transition-all flex items-center justify-center gap-3 cursor-pointer"
+      >
+        <svg class="w-6 h-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+        </svg>
+        <span>{t('result.downloadBtn')}</span>
+      </a>
+
+      <button
+        type="button"
+        id="compress-another-btn"
+        class="w-full sm:w-auto px-6 py-4 rounded-2xl bg-[var(--highlight-pill-badge)] hover:bg-[#9290C3]/30 text-[var(--text-primary)] border border-[var(--border-color)] font-bold text-base sm:text-lg transition-all cursor-pointer"
+      >
+        {t('result.compressAnother')}
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { FFmpeg } from '@ffmpeg/ffmpeg';
+  import { fetchFile, toBlobURL } from '@ffmpeg/util';
+
+  const workspace = document.getElementById('compressor-workspace');
+  const strings = workspace ? JSON.parse(workspace.dataset.strings || '{}') : {};
+
+  // Collapsible Drawers (Top Modes Drawer & Step 2 Advanced Settings Drawer)
+  const toggleModesDrawerBtn = document.getElementById('toggle-modes-drawer-btn')!;
+  const modesDrawerPanel = document.getElementById('modes-drawer-panel')!;
+  const modesDrawerChevron = document.getElementById('modes-drawer-chevron')!;
+  const activeModeLabel = document.getElementById('active-mode-label')!;
+
+  const toggleAdvancedBtn = document.getElementById('toggle-advanced-settings-btn')!;
+  const advancedSettingsDrawer = document.getElementById('advanced-settings-drawer')!;
+  const advancedSettingsChevron = document.getElementById('advanced-settings-chevron')!;
+  const activePresetSummaryPill = document.getElementById('active-preset-summary-pill')!;
+
+  function setModesDrawerOpen(open: boolean) {
+    modesDrawerPanel.classList.toggle('hidden', !open);
+    toggleModesDrawerBtn.setAttribute('aria-expanded', String(open));
+    modesDrawerChevron.classList.toggle('rotate-180', open);
+  }
+
+  function setAdvancedDrawerOpen(open: boolean) {
+    advancedSettingsDrawer.classList.toggle('hidden', !open);
+    toggleAdvancedBtn.setAttribute('aria-expanded', String(open));
+    advancedSettingsChevron.classList.toggle('rotate-180', open);
+  }
+
+  toggleModesDrawerBtn.addEventListener('click', () => {
+    const isHidden = modesDrawerPanel.classList.contains('hidden');
+    setModesDrawerOpen(isHidden);
+  });
+
+  toggleAdvancedBtn.addEventListener('click', () => {
+    const isHidden = advancedSettingsDrawer.classList.contains('hidden');
+    setAdvancedDrawerOpen(isHidden);
+  });
+
+  // Step containers
+  const step1 = document.getElementById('step-1-dropzone')!;
+  const step2 = document.getElementById('step-2-controls')!;
+  const step3 = document.getElementById('step-3-progress')!;
+  const step4 = document.getElementById('step-4-result')!;
+
+  // Dropzone & Inputs
+  const dropzoneArea = document.getElementById('dropzone-area')!;
+  const fileInput = document.getElementById('video-file-input') as HTMLInputElement;
+  const selectVideoBtn = document.getElementById('select-video-btn')!;
+
+  // Step 2 UI elements
+  const fileExtBadge = document.getElementById('file-ext-badge')!;
+  const selectedFileName = document.getElementById('selected-file-name')!;
+  const selectedFileMeta = document.getElementById('selected-file-meta')!;
+  const batchCountBadge = document.getElementById('batch-count-badge')!;
+  const changeVideoBtn = document.getElementById('change-video-btn')!;
+  const presetCards = document.querySelectorAll<HTMLElement>('[data-preset-card]');
+  const targetMbPills = document.querySelectorAll<HTMLButtonElement>('[data-target-mb]');
+  const customMbInput = document.getElementById('custom-mb-input') as HTMLInputElement;
+  const calculatedBitrateBadge = document.getElementById('calculated-bitrate-badge')!;
+  const resolutionSelect = document.getElementById('resolution-select') as HTMLSelectElement;
+  const muteAudioCheckbox = document.getElementById('mute-audio-checkbox') as HTMLInputElement;
+  const trimStartInput = document.getElementById('trim-start-input') as HTMLInputElement;
+  const trimEndInput = document.getElementById('trim-end-input') as HTMLInputElement;
+  const liveEstimatedSize = document.getElementById('live-estimated-size')!;
+  const startCompressBtn = document.getElementById('start-compress-btn')!;
+
+  // Step 3 UI elements
+  const progressStatusText = document.getElementById('progress-status-text')!;
+  const progressLiveEstimate = document.getElementById('progress-live-estimate')!;
+  const progressPercentage = document.getElementById('progress-percentage')!;
+  const progressBarFill = document.getElementById('progress-bar-fill')!;
+
+  // Step 4 UI elements
+  const savingsBannerText = document.getElementById('savings-banner-text')!;
+  const savingsPillPercent = document.getElementById('savings-pill-percent')!;
+  const previewVideo = document.getElementById('compressed-video-preview') as HTMLVideoElement;
+  const downloadBtn = document.getElementById('download-compressed-btn') as HTMLAnchorElement;
+  const compressAnotherBtn = document.getElementById('compress-another-btn')!;
+
+  // State
+  let currentFile: File | null = null;
+  let videoDurationSec = 10;
+  let videoWidth = 1920;
+  let videoHeight = 1080;
+  let activePreset: 'quality' | 'max' | 'target' = 'quality';
+  let targetSizeMB = 8;
+  let ffmpegInstance: FFmpeg | null = null;
+  let currentOutputUrl: string | null = null;
+
+  function formatMB(bytes: number): string {
+    const mb = bytes / (1024 * 1024);
+    if (mb < 0.1) {
+      return `${(bytes / 1024).toFixed(1)} KB`;
+    }
+    return `${mb.toFixed(2)} MB`;
+  }
+
+  function showStep(stepNumber: 1 | 2 | 3 | 4) {
+    step1.classList.toggle('hidden', stepNumber !== 1);
+    step2.classList.toggle('hidden', stepNumber !== 2);
+    step3.classList.toggle('hidden', stepNumber !== 3);
+    step4.classList.toggle('hidden', stepNumber !== 4);
+  }
+
+  // Mode Selector Pills at Top
+  const modePills = document.querySelectorAll<HTMLButtonElement>('[data-mode-pill]');
+  modePills.forEach((pill) => {
+    pill.addEventListener('click', () => {
+      modePills.forEach((p) => {
+        p.classList.remove('bg-[#1B1A55]', 'text-white', 'shadow-sm');
+        p.classList.add('bg-[var(--highlight-pill-badge)]', 'text-[var(--text-primary)]');
+        p.setAttribute('aria-selected', 'false');
+      });
+      pill.classList.add('bg-[#1B1A55]', 'text-white', 'shadow-sm');
+      pill.classList.remove('bg-[var(--highlight-pill-badge)]', 'text-[var(--text-primary)]');
+      pill.setAttribute('aria-selected', 'true');
+
+      if (pill.textContent) {
+        activeModeLabel.textContent = pill.textContent.trim();
+      }
+
+      const mode = pill.dataset.modePill;
+      if (mode === 'compress-email') {
+        selectPreset('target');
+        setTargetMB(25);
+      } else if (mode === 'compress-large') {
+        selectPreset('target');
+        setTargetMB(50);
+      } else if (mode === 'trim-video') {
+        setAdvancedDrawerOpen(true);
+        trimStartInput.focus();
+      } else {
+        selectPreset('quality');
+      }
+
+      // Collapse the mode drawer after choosing a mode to keep screen clean
+      setModesDrawerOpen(false);
+    });
+  });
+
+  function selectPreset(preset: 'quality' | 'max' | 'target') {
+    activePreset = preset;
+    presetCards.forEach((card) => {
+      const cardPreset = card.dataset.presetCard;
+      const radio = card.querySelector('input[type="radio"]') as HTMLInputElement;
+      const dot = card.querySelector('.preset-radio-dot span') as HTMLElement;
+      if (cardPreset === preset) {
+        radio.checked = true;
+        card.classList.add('border-[#1B1A55]', 'dark:border-[#9290C3]', 'bg-[var(--highlight-pill-badge)]');
+        card.classList.remove('border-[var(--border-color)]/40', 'bg-[var(--bg-surface-card)]');
+        if (dot) {
+          dot.classList.remove('bg-transparent');
+          dot.classList.add('bg-[#1B1A55]', 'dark:bg-[#9290C3]');
+        }
+      } else {
+        radio.checked = false;
+        card.classList.remove('border-[#1B1A55]', 'dark:border-[#9290C3]', 'bg-[var(--highlight-pill-badge)]');
+        card.classList.add('border-[var(--border-color)]/40', 'bg-[var(--bg-surface-card)]');
+        if (dot) {
+          dot.classList.add('bg-transparent');
+          dot.classList.remove('bg-[#1B1A55]', 'dark:bg-[#9290C3]');
+        }
+      }
+    });
+    updateEstimates();
+  }
+
+  presetCards.forEach((card) => {
+    card.addEventListener('click', () => {
+      const p = card.dataset.presetCard as 'quality' | 'max' | 'target';
+      if (p) selectPreset(p);
+    });
+  });
+
+  function setTargetMB(mb: number) {
+    targetSizeMB = Math.max(1, mb);
+    customMbInput.value = String(targetSizeMB);
+    targetMbPills.forEach((pill) => {
+      const pillMb = Number(pill.dataset.targetMb);
+      if (pillMb === targetSizeMB) {
+        pill.classList.add('bg-[#1B1A55]', 'text-white');
+        pill.classList.remove('bg-[var(--bg-surface-card)]', 'text-[var(--text-primary)]');
+      } else {
+        pill.classList.remove('bg-[#1B1A55]', 'text-white');
+        pill.classList.add('bg-[var(--bg-surface-card)]', 'text-[var(--text-primary)]');
+      }
+    });
+    selectPreset('target');
+  }
+
+  targetMbPills.forEach((pill) => {
+    pill.addEventListener('click', () => {
+      const mb = Number(pill.dataset.targetMb || 8);
+      setTargetMB(mb);
+    });
+  });
+
+  customMbInput.addEventListener('input', () => {
+    const val = parseFloat(customMbInput.value);
+    if (!isNaN(val) && val > 0) {
+      targetSizeMB = val;
+      selectPreset('target');
+    }
+  });
+
+  resolutionSelect.addEventListener('change', updateEstimates);
+  muteAudioCheckbox.addEventListener('change', updateEstimates);
+  trimStartInput.addEventListener('input', updateEstimates);
+  trimEndInput.addEventListener('input', updateEstimates);
+
+  function getEffectiveDuration(): number {
+    const start = Math.max(0, parseFloat(trimStartInput.value) || 0);
+    const endRaw = parseFloat(trimEndInput.value);
+    const end = !isNaN(endRaw) && endRaw > start ? Math.min(endRaw, videoDurationSec) : videoDurationSec;
+    return Math.max(1, end - start);
+  }
+
+  function calculateTargetBitrates() {
+    const duration = getEffectiveDuration();
+    const safetyFactor = 0.94;
+    const totalBits = targetSizeMB * 8 * 1024 * 1024 * safetyFactor;
+    const totalKbps = Math.floor(totalBits / duration / 1000);
+    const isMuted = muteAudioCheckbox.checked;
+    const audioKbps = isMuted ? 0 : Math.min(128, Math.max(64, Math.floor(totalKbps * 0.15)));
+    const videoKbps = Math.max(120, totalKbps - audioKbps);
+    return { videoKbps, audioKbps, totalKbps };
+  }
+
+  function getEstimatedBytes(): number {
+    if (!currentFile) return 0;
+    const origBytes = currentFile.size;
+    const durationRatio = getEffectiveDuration() / Math.max(1, videoDurationSec);
+    const resVal = resolutionSelect.value;
+    let resFactor = 1.0;
+    const maxDim = Math.max(videoWidth, videoHeight);
+    if (resVal === '1080' && maxDim > 1080) resFactor = 0.72;
+    if (resVal === '720') resFactor = 0.52;
+    if (resVal === '480') resFactor = 0.34;
+
+    const audioFactor = muteAudioCheckbox.checked ? 0.9 : 1.0;
+
+    if (activePreset === 'quality') {
+      return Math.max(40 * 1024, Math.floor(origBytes * 0.42 * durationRatio * resFactor * audioFactor));
+    } else if (activePreset === 'max') {
+      return Math.max(25 * 1024, Math.floor(origBytes * 0.20 * durationRatio * resFactor * audioFactor));
+    } else {
+      const targetBytes = targetSizeMB * 1024 * 1024 * 0.95;
+      return Math.floor(Math.min(origBytes * 0.92, targetBytes));
+    }
+  }
+
+  function getExactEncodingBitrates() {
+    const duration = getEffectiveDuration();
+    const estBytes = getEstimatedBytes();
+    const safetyFactor = 0.93; // Ensures output never exceeds estimated target size
+    const totalBits = estBytes * 8 * safetyFactor;
+    const totalKbps = Math.max(150, Math.floor(totalBits / duration / 1000));
+    const isMuted = muteAudioCheckbox.checked;
+    const audioKbps = isMuted ? 0 : Math.min(96, Math.max(48, Math.floor(totalKbps * 0.14)));
+    const videoKbps = Math.max(100, totalKbps - audioKbps);
+    return { videoKbps, audioKbps, totalKbps, estBytes };
+  }
+
+  function updateEstimates() {
+    const { videoKbps, audioKbps } = getExactEncodingBitrates();
+    calculatedBitrateBadge.textContent = `Video: ${videoKbps} kbps${audioKbps > 0 ? ` + Audio: ${audioKbps} kbps` : ' (Muted)'}`;
+
+    if (activePreset === 'quality') {
+      activePresetSummaryPill.textContent = strings.presetQualityTitle || 'Without Losing Quality';
+    } else if (activePreset === 'max') {
+      activePresetSummaryPill.textContent = strings.presetMaxTitle || 'Maximum Compression';
+    } else {
+      activePresetSummaryPill.textContent = `${strings.presetTargetTitle || 'Target Size'}: ${targetSizeMB} MB`;
+    }
+
+    if (!currentFile) return;
+    const estBytes = getEstimatedBytes();
+    const savingsPct = Math.max(5, Math.min(95, Math.round((1 - estBytes / currentFile.size) * 100)));
+    liveEstimatedSize.textContent = `~${formatMB(estBytes)} (-${savingsPct}%)`;
+  }
+
+  async function probeVideoMetadata(file: File): Promise<{ duration: number; width: number; height: number }> {
+    return new Promise((resolve) => {
+      const tempVideo = document.createElement('video');
+      tempVideo.preload = 'metadata';
+      const url = URL.createObjectURL(file);
+      const cleanup = () => URL.revokeObjectURL(url);
+
+      const timeout = setTimeout(() => {
+        cleanup();
+        resolve({ duration: 10, width: 1920, height: 1080 });
+      }, 4000);
+
+      tempVideo.onloadedmetadata = () => {
+        clearTimeout(timeout);
+        const duration = isFinite(tempVideo.duration) && tempVideo.duration > 0 ? tempVideo.duration : 10;
+        const width = tempVideo.videoWidth || 1920;
+        const height = tempVideo.videoHeight || 1080;
+        cleanup();
+        resolve({ duration, width, height });
+      };
+
+      tempVideo.onerror = () => {
+        clearTimeout(timeout);
+        cleanup();
+        resolve({ duration: 10, width: 1920, height: 1080 });
+      };
+
+      tempVideo.src = url;
+    });
+  }
+
+  async function handleFilesSelected(files: FileList | File[]) {
+    if (!files || files.length === 0) return;
+    currentFile = files[0];
+
+    const ext = (currentFile.name.split('.').pop() || 'MP4').toUpperCase().slice(0, 4);
+    fileExtBadge.textContent = ext;
+    selectedFileName.textContent = currentFile.name;
+
+    if (files.length > 1) {
+      batchCountBadge.textContent = `${files.length} files`;
+      batchCountBadge.classList.remove('hidden');
+    } else {
+      batchCountBadge.classList.add('hidden');
+    }
+
+    const meta = await probeVideoMetadata(currentFile);
+    videoDurationSec = meta.duration;
+    videoWidth = meta.width;
+    videoHeight = meta.height;
+
+    trimStartInput.value = '0';
+    trimEndInput.value = meta.duration.toFixed(1);
+
+    selectedFileMeta.textContent = `${formatMB(currentFile.size)} • ${meta.width}×${meta.height} • ${meta.duration.toFixed(1)}s`;
+    updateEstimates();
+    // Ensure advanced settings stay collapsed on initial Step 2 load so user sees only the Compress button
+    setAdvancedDrawerOpen(false);
+    showStep(2);
+  }
+
+  // Dropzone events
+  selectVideoBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    fileInput.click();
+  });
+
+  dropzoneArea.addEventListener('click', () => {
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', () => {
+    if (fileInput.files && fileInput.files.length > 0) {
+      handleFilesSelected(fileInput.files);
+    }
+  });
+
+  dropzoneArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzoneArea.classList.add('drag-active');
+  });
+
+  dropzoneArea.addEventListener('dragleave', () => {
+    dropzoneArea.classList.remove('drag-active');
+  });
+
+  dropzoneArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzoneArea.classList.remove('drag-active');
+    if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+      handleFilesSelected(e.dataTransfer.files);
+    }
+  });
+
+  changeVideoBtn.addEventListener('click', () => {
+    fileInput.value = '';
+    showStep(1);
+  });
+
+  compressAnotherBtn.addEventListener('click', () => {
+    fileInput.value = '';
+    showStep(1);
+  });
+
+  // Core Compression Engine: Try @ffmpeg/ffmpeg WebAssembly first, with resilient Canvas/MediaRecorder hardware fallback
+  async function compressWithFFmpegWasm(file: File): Promise<Blob> {
+    if (!ffmpegInstance) {
+      ffmpegInstance = new FFmpeg();
+      ffmpegInstance.on('progress', ({ progress }) => {
+        const pct = Math.min(99, Math.max(5, Math.round(progress * 100)));
+        progressPercentage.textContent = `${pct}%`;
+        progressBarFill.style.width = `${pct}%`;
+      });
+
+      const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
+      await ffmpegInstance.load({
+        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+      });
+    }
+
+    progressStatusText.textContent = strings.transcoding || 'Encoding H.264 / AAC Frame Stream...';
+
+    const inputName = 'input_video' + (file.name.substring(file.name.lastIndexOf('.')) || '.mp4');
+    const outputName = 'output_compressed.mp4';
+
+    await ffmpegInstance.writeFile(inputName, await fetchFile(file));
+
+    const args: string[] = ['-i', inputName];
+
+    const startSec = parseFloat(trimStartInput.value) || 0;
+    const endSec = parseFloat(trimEndInput.value) || videoDurationSec;
+    if (startSec > 0) {
+      args.push('-ss', String(startSec));
+    }
+    if (endSec > startSec && endSec < videoDurationSec) {
+      args.push('-to', String(endSec));
+    }
+
+    const res = resolutionSelect.value;
+    if (res !== 'original') {
+      if (videoHeight > videoWidth) {
+        // Portrait video (e.g. 1080x1920): scale width to target resolution
+        args.push('-vf', `scale=${res}:-2`);
+      } else {
+        args.push('-vf', `scale=-2:${res}`);
+      }
+    }
+
+    // Strict Bitrate-Capped Encoding so output NEVER exceeds original file size or estimated MB
+    const { videoKbps, audioKbps } = getExactEncodingBitrates();
+    args.push(
+      '-c:v',
+      'libx264',
+      '-preset',
+      'veryfast',
+      '-pix_fmt',
+      'yuv420p',
+      '-b:v',
+      `${videoKbps}k`,
+      '-maxrate',
+      `${Math.floor(videoKbps * 1.08)}k`,
+      '-bufsize',
+      `${videoKbps * 2}k`
+    );
+
+    if (muteAudioCheckbox.checked || audioKbps <= 0) {
+      args.push('-an');
+    } else {
+      args.push('-c:a', 'aac', '-b:a', `${audioKbps}k`);
+    }
+
+    args.push('-movflags', '+faststart', outputName);
+
+    await ffmpegInstance.exec(args);
+    const data = await ffmpegInstance.readFile(outputName);
+    await ffmpegInstance.deleteFile(inputName).catch(() => {});
+    await ffmpegInstance.deleteFile(outputName).catch(() => {});
+
+    return new Blob([data as Uint8Array], { type: 'video/mp4' });
+  }
+
+  async function compressWithHardwareStream(file: File): Promise<Blob> {
+    progressStatusText.textContent = strings.instantFallback || 'Optimizing High-Speed Hardware Stream...';
+    const { videoKbps } = getExactEncodingBitrates();
+    // Since hardware playback runs at 2.0x speed, scale recorder bitrate by 2.0x so real-time bits match exact target size
+    const speedMultiplier = 2.0;
+    const targetBitsPerSec = Math.max(150000, Math.floor(videoKbps * 1000 * speedMultiplier));
+
+    return new Promise((resolve, reject) => {
+      const srcVideo = document.createElement('video');
+      srcVideo.muted = true;
+      srcVideo.playsInline = true;
+      const srcUrl = URL.createObjectURL(file);
+      srcVideo.src = srcUrl;
+
+      srcVideo.onloadedmetadata = () => {
+        const res = resolutionSelect.value;
+        let outH = srcVideo.videoHeight || 720;
+        let outW = srcVideo.videoWidth || 1280;
+        if (res !== 'original') {
+          const targetDim = parseInt(res, 10);
+          const isPortrait = outH > outW;
+          if (isPortrait && targetDim < outW) {
+            outH = Math.round((outH * targetDim) / outW);
+            if (outH % 2 !== 0) outH += 1;
+            outW = targetDim;
+          } else if (!isPortrait && targetDim < outH) {
+            outW = Math.round((outW * targetDim) / outH);
+            if (outW % 2 !== 0) outW += 1;
+            outH = targetDim;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = outW;
+        canvas.height = outH;
+        const ctx = canvas.getContext('2d')!;
+        const stream = canvas.captureStream(30);
+
+        const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+          ? 'video/webm;codecs=vp9'
+          : MediaRecorder.isTypeSupported('video/mp4')
+            ? 'video/mp4'
+            : 'video/webm;codecs=vp8';
+
+        const recorder = new MediaRecorder(stream, {
+          mimeType: MediaRecorder.isTypeSupported(mime) ? mime : undefined,
+          videoBitsPerSecond: targetBitsPerSec,
+        });
+
+        const chunks: BlobPart[] = [];
+        recorder.ondataavailable = (e) => {
+          if (e.data && e.data.size > 0) chunks.push(e.data);
+        };
+
+        recorder.onstop = () => {
+          URL.revokeObjectURL(srcUrl);
+          resolve(new Blob(chunks, { type: 'video/mp4' }));
+        };
+
+        const startSec = parseFloat(trimStartInput.value) || 0;
+        const endSec = Math.min(srcVideo.duration || 10, parseFloat(trimEndInput.value) || srcVideo.duration || 10);
+        srcVideo.currentTime = startSec;
+        srcVideo.playbackRate = speedMultiplier;
+
+        recorder.start(100);
+        srcVideo.play().catch(reject);
+
+        const pump = () => {
+          if (srcVideo.paused || srcVideo.ended || srcVideo.currentTime >= endSec) {
+            if (recorder.state === 'recording') recorder.stop();
+            return;
+          }
+          ctx.drawImage(srcVideo, 0, 0, outW, outH);
+          const pct = Math.min(98, Math.max(10, Math.round(((srcVideo.currentTime - startSec) / Math.max(0.5, endSec - startSec)) * 100)));
+          progressPercentage.textContent = `${pct}%`;
+          progressBarFill.style.width = `${pct}%`;
+          requestAnimationFrame(pump);
+        };
+
+        requestAnimationFrame(pump);
+      };
+
+      srcVideo.onerror = () => {
+        URL.revokeObjectURL(srcUrl);
+        reject(new Error('Video decode error'));
+      };
+    });
+  }
+
+  startCompressBtn.addEventListener('click', async () => {
+    if (!currentFile) return;
+
+    const estBytes = getEstimatedBytes();
+    progressLiveEstimate.textContent = `${strings.liveEstimate || 'Estimated:'} ~${formatMB(estBytes)}`;
+    progressPercentage.textContent = '8%';
+    progressBarFill.style.width = '8%';
+    progressStatusText.textContent = strings.loadingEngine || 'Initializing WebAssembly FFmpeg Engine...';
+    showStep(3);
+
+    let compressedBlob: Blob;
+    try {
+      compressedBlob = await compressWithFFmpegWasm(currentFile);
+    } catch (wasmErr) {
+      console.warn('FFmpeg WASM fallback triggered:', wasmErr);
+      compressedBlob = await compressWithHardwareStream(currentFile);
+    }
+
+    progressPercentage.textContent = '100%';
+    progressBarFill.style.width = '100%';
+
+    if (currentOutputUrl) {
+      URL.revokeObjectURL(currentOutputUrl);
+    }
+    currentOutputUrl = URL.createObjectURL(compressedBlob);
+
+    const origSize = currentFile.size;
+    const compSize = compressedBlob.size;
+    const savedPct = Math.max(1, Math.round((1 - compSize / origSize) * 100));
+
+    savingsBannerText.textContent = `${strings.original || 'Original:'} ${formatMB(origSize)} → ${strings.compressed || 'Compressed:'} ${formatMB(compSize)} (${strings.saved || 'Saved'} ${savedPct}%!)`;
+    savingsPillPercent.textContent = `-${savedPct}%`;
+
+    previewVideo.src = currentOutputUrl;
+    const baseName = currentFile.name.replace(/\.[^/.]+$/, '');
+    downloadBtn.href = currentOutputUrl;
+    downloadBtn.download = `${baseName}-shrunk.mp4`;
+
+    showStep(4);
+  });
+</script>

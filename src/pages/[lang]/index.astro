@@ -1,0 +1,23 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LandingContent from '../../components/LandingContent.astro';
+import { type Locale } from '../../i18n/ui';
+
+export function getStaticPaths() {
+  const nonDefaultLocales: Locale[] = ['es', 'pt', 'de', 'fr', 'ja', 'zh', 'ru'];
+  return nonDefaultLocales.map((lang) => ({
+    params: { lang },
+    props: { lang },
+  }));
+}
+
+interface Props {
+  lang: Locale;
+}
+
+const { lang } = Astro.props;
+---
+
+<BaseLayout lang={lang}>
+  <LandingContent lang={lang} />
+</BaseLayout>

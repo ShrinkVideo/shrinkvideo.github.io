@@ -1,0 +1,130 @@
+---
+import '../styles/global.css';
+import {
+  languages,
+  type Locale,
+  useTranslations,
+  getLocalePath,
+  targetMetaKeywords,
+} from '../i18n/ui';
+import Header from '../components/Header.astro';
+import JsonLdSchema from '../components/JsonLdSchema.astro';
+
+interface Props {
+  lang: Locale;
+  title?: string;
+  description?: string;
+}
+
+const { lang, title, description } = Astro.props;
+const t = useTranslations(lang);
+const pageTitle = title || t('site.title');
+const pageDescription = description || t('site.description');
+const siteOrigin = Astro.site ? Astro.site.toString().replace(/\/$/, '') : 'https://shrinkvideo.github.io';
+const rawPath = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
+const canonicalUrl = `${siteOrigin}${rawPath}`;
+const ogImageUrl = `${siteOrigin}/og-image.svg`;
+const currentOgLocale = languages[lang].ogLocale;
+---
+
+<!doctype html>
+<html lang={lang} dir={languages[lang].dir}>
+  <head>
+    <!-- Google Tag Manager (GTM-WGNKVMWP) & Google Analytics 4 (G-JPTL1LGR11) -->
+    <script is:inline async src="https://www.googletagmanager.com/gtm.js?id=GTM-WGNKVMWP"></script>
+    <script is:inline async src="https://www.googletagmanager.com/gtag/js?id=G-JPTL1LGR11"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-JPTL1LGR11');
+    </script>
+
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{pageTitle}</title>
+    <meta name="description" content={pageDescription} />
+    <meta name="keywords" content={targetMetaKeywords} />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
+    <!-- Self-Referencing Canonical URL -->
+    <link rel="canonical" href={canonicalUrl} />
+
+    <!-- Sitemap Link for Crawlers & GSC -->
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://shrinkvideo.github.io/sitemap.xml" />
+
+    <!-- Icons & PWA Manifest -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#1B1A55" />
+
+    <!-- Hreflang Tags for All 8 Locales + x-default -->
+    {Object.keys(languages).map((code) => {
+      const locPath = getLocalePath(code as Locale);
+      const normalized = locPath.endsWith('/') ? locPath : `${locPath}/`;
+      return (
+        <link
+          rel="alternate"
+          hreflang={code}
+          href={`${siteOrigin}${normalized}`}
+        />
+      );
+    })}
+    <link
+      rel="alternate"
+      hreflang="x-default"
+      href={`${siteOrigin}/`}
+    />
+
+    <!-- Open Graph Metadata -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={pageTitle} />
+    <meta property="og:description" content={pageDescription} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:image" content={ogImageUrl} />
+    <meta property="og:site_name" content="ShrinkVideo" />
+    <meta property="og:locale" content={currentOgLocale} />
+    {Object.entries(languages)
+      .filter(([code]) => code !== lang)
+      .map(([, info]) => (
+        <meta property="og:locale:alternate" content={info.ogLocale} />
+      ))}
+
+    <!-- Twitter Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={pageTitle} />
+    <meta name="twitter:description" content={pageDescription} />
+    <meta name="twitter:image" content={ogImageUrl} />
+
+    <!-- Strict Zero-Fake-Rating JSON-LD Schema (WebApplication, HowTo, FAQPage, BreadcrumbList) -->
+    <JsonLdSchema lang={lang} canonicalUrl={canonicalUrl} />
+
+    <!-- Flash-free Theme Initialization (Light Mode Default) -->
+    <script is:inline>
+      (function () {
+        try {
+          const saved = localStorage.getItem('shrinkvideo-theme');
+          if (saved === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (_) {}
+      })();
+    </script>
+  </head>
+  <body class="min-h-dvh flex flex-col bg-[var(--bg-primary)] text-[var(--text-primary)] selection:bg-[#1B1A55] selection:text-white">
+    <Header lang={lang} />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <script is:inline>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js').catch(function () {});
+        });
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" fill="none">
+  <rect width="1200" height="630" fill="#070F2B"/>
+  <rect x="36" y="36" width="1128" height="558" rx="40" fill="#1B1A55" stroke="#535C91" stroke-width="4"/>
+  <g transform="translate(110, 175)">
+    <rect width="136" height="136" rx="32" fill="#070F2B" stroke="#9290C3" stroke-width="4"/>
+    <path d="M55 44L92 68L55 92V44Z" fill="#F5F5FA"/>
+    <path d="M24 38L42 52L24 66" stroke="#9290C3" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M112 38L94 52L112 66" stroke="#9290C3" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="280" y="235" fill="#F5F5FA" font-family="Inter, system-ui, sans-serif" font-weight="900" font-size="68">ShrinkVideo</text>
+  <text x="280" y="295" fill="#9290C3" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="34">Free Online Video Compressor — No Watermark, Zero Upload</text>
+  <rect x="110" y="365" width="980" height="120" rx="24" fill="#070F2B" stroke="#9290C3" stroke-opacity="0.45" stroke-width="2"/>
+  <text x="150" y="438" fill="#F5F5FA" font-family="Inter, system-ui, sans-serif" font-weight="800" font-size="34">Shrink MP4, iPhone MOV, WebM &amp; MKV up to 85% in Browser RAM</text>
+</svg>
